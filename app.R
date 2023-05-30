@@ -39,7 +39,10 @@ ui <- fluidPage(
                     
                     #generate logo
                     tags$a(href = 'https://koberstudio.com',
-                           tags$image(src = "Logo.svg", height = "200px", width = "200px", alt = "", deleteFile = FALSE)),              
+                           tags$image(src = "Logo.svg", height = "200px", width = "200px", alt = "", deleteFile = FALSE)),    
+                    
+                    #Intro text before submission
+                    h1(textOutput("intro")),
                     
                     #Form Inputs
                     selectInput(inputId = "cuisine" 
@@ -80,7 +83,7 @@ ui <- fluidPage(
                                 , selected = "Quality"
                     ),
                     selectInput(inputId = "children" 
-                                , label = "Will yount children be attending?"
+                                , label = "Will young children be attending?"
                                 , choices = c("Yes", "No")
                                 , selected = "No"
                     ),
@@ -116,7 +119,10 @@ ui <- fluidPage(
 server <- function(input, output, session) {
     # Establish database connection
     con <- dbcon()
-    
+    intro <- "Where should I eat in the Provo Utah area?"
+    output$intro <- renderText({
+        intro
+    })
     # Submit data to database
     observeEvent(input$submit, {
         cuisine <- input$cuisine
@@ -203,6 +209,7 @@ server <- function(input, output, session) {
         DBI::dbGetQuery(con, statement = query)
         
         #Hide Inputs & Submit button once the form is submitted
+        shinyjs::hide("intro")
         shinyjs::hide("cuisine")
         shinyjs::hide("meal")
         shinyjs::hide("vegitarian")
