@@ -14,10 +14,10 @@ library(readr)
 # Function to establish database connection
 dbcon <- function() {
     con <- DBI::dbConnect(RMySQL::MySQL(),
-                          host = "##.###.#.###",
+                          host = "23.239.4.168",
                           port = 3306,
-                          user = "#####",
-                          password = "#####"
+                          user = "jkober",
+                          password = "4N4CrFHevPzpdt!"
     )
     return(con)
 }
@@ -96,7 +96,7 @@ ui <- fluidPage(
                     ),
                     selectInput(inputId = "different" 
                                 , label = "Would you like to try something different?"
-                                , choices = c("Yes, please", "I'd like to go somewhere comfortable")
+                                , choices = c("Yes, please", "I would like to go somewhere comfortable")
                                 , selected = "Yes, please"
                     ),
                     #Submission Button
@@ -142,45 +142,75 @@ server <- function(input, output, session) {
         provoDining <- read.csv('provoRestaurants.csv', header = TRUE)
         #Filter choices to the type of cuisine
         if(cuisine != "Surprise me"){
-            provoDining2 <- subset(provoDining, tolower(provoDining$type) == tolower(cuisine))
+          provoDining2 <- subset(provoDining, tolower(provoDining$type) == tolower(cuisine))
         } else{
-            provoDining2 <- provoDining
+          provoDining2 <- provoDining
         }
         #Filter to places that serve Breakfast if they are going to breakfast (ignore the cuisine type)
         if(meal == "Breakfast"){
-            provoDining2 <- subset(provoDining, provoDining$breakfast == 1)
+          provoDining2 <- subset(provoDining, provoDining$breakfast == 1)
         }
         #Ignore Vegetarian question (since most places have vegetarian options)
         #Filter to places at the appropriate cost
         if(spend == 'Affordable'){
-            provoDining3 <- subset(provoDining2, tolower(provoDining2$expense) == 'affordable' || tolower(provoDining2$expense) == 'cheap')
+          provoDining3 <- subset(provoDining2, tolower(provoDining2$expense) == 'affordable' | tolower(provoDining2$expense) == 'cheap')
         } else{
-            provoDining3 <- subset(provoDining2, tolower(provoDining2$expense) == tolower(spend))
+          provoDining3 <- subset(provoDining2, tolower(provoDining2$expense) == tolower(spend))
         }
         #Filter to Sit down/quality/special occasion places if wanted
-        if(atmosphere == "Sit down Restaurant" || quality == "Quality" || special == "Yes"){
-            provoDining4 <- subset(provoDining3, provoDining3$SitDown == 1)
+        if(atmosphere == "Sit down Restaurant" | quality == "Quality" | special == "Yes"){
+          provoDining4 <- subset(provoDining3, provoDining3$SitDown == 1)
         } else{
-            provoDining4 <- subset(provoDining3, provoDining3$SitDown == 0)
+          provoDining4 <- subset(provoDining3, provoDining3$SitDown == 0)
         }
         #Ignore whether they're bringing children (placeholder question)
         #Filter to a Different place to eat if wanted
         if(different == "Yes, please"){
-            provoDining5 <- subset(provoDining4, provoDining4$Different == 1)
-        } else if("I'd like to go somewhere comfortable"){
-            provoDining5 <- subset(provoDining4, provoDining4$Different == 0)
+          provoDining5 <- subset(provoDining4, provoDining4$Different == 1)
+        } else{
+          provoDining5 <- subset(provoDining4, provoDining4$Different == 0)
         }
         #Generate random result of where to eat with it's description and address
         if(nrow(provoDining5) > 0){
-            result <- sample(provoDining5$Name, size = 1)
-            description <- subset(provoDining5, provoDining5$Name == result)$Description
-            address <- subset(provoDining5, provoDining5$Name == result)$address
-        } 
-        else{
-            result <- "No Restaurant found"
-            description <- "Please retry with different criteria"
-            address <- "Sorry for the inconvenience"
+          result <- sample(provoDining5$Name, size = 1)
+          description <- subset(provoDining5, provoDining5$Name == result)$Description
+          address <- subset(provoDining5, provoDining5$Name == result)$address
+        } else{
+          result <- "No Restaurant found"
+          description <- "Please retry with different criteria"
+          address <- "Sorry for the inconvenience"
         }
+        result <- gsub("'", "",result)
+        description <- gsub("'", "",description)
+        address <- gsub("'", "",address)
+        
+        #Query to pass to MYSQL Table
+        query <- paste0("insert into forms.provo_food 
+                            (cuisine
+                        	, meal
+                        	, vegitarian
+                        	, spend
+                        	, atmosphere
+                        	, people
+                        	, quality
+                        	, children
+                        	, special
+                        	, different
+                        	, restaurant
+                        )
+                    values (",
+                        "'", cuisine, "',",
+                        "'", meal, "',",
+                        "'", vegitarian, "',",
+                        "'", spend, "',",
+                        "'", atmosphere, "',",
+                        people, ",",
+                        "'", quality, "',",
+                        "'", children, "',",
+                        "'", special, "',",
+                        "'", different, "',",
+                        "'", result, "');"
+        )
         #Query to pass to MYSQL Table
         query <- paste0("insert into forms.provo_food 
                             (cuisine
@@ -248,19 +278,17 @@ server <- function(input, output, session) {
         #Render Chart on where people are directed to eat
         output$restaurantPlot <- renderPlotly({
             ggplotly(ggplot(data = restaurantPlot, aes(x = reorder(restaurant, count), y = count, fill = count, text = text)) +
-                        geom_bar(stat = "identity", color = "#000000", alpha = .4, show.legend = FALSE) +
+                        geom_bar(stat = "identity", color = "#000000", alpha = .4, width = .75, show.legend = FALSE) +
                         coord_flip() +
-                        #geom_area(fill = "#69b3a2", color = "#000000", alpha = .4) +
-                        #geom_line(color="#69b3a2", size=2) +
-                        #geom_point(size=3, color="#69b3a2") +
                          theme(panel.background = element_rect(fill = "#202123"),
                                plot.background = element_rect(fill = "#202123"),
+                               panel.grid.major = element_blank(),
+                               panel.grid.minor = element_blank(),
                                title = element_text(colour = '#ffffff'),
                                axis.title.x = element_blank(),
                                axis.title.y = element_blank(),
                                axis.text.x = element_blank(),
                                axis.ticks.x = element_blank(),
-                               #axis.text.y = element_blank(),
                                axis.ticks.y = element_blank()) +
                          ylim(0,max(restaurantPlot$count)+5) +
                          ggtitle("Where are People Eating?"), tooltip = "text"

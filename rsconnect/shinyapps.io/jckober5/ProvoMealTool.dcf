@@ -1,0 +1,13 @@
+name: ProvoMealTool
+title: ProvoMealTool
+username: jckober5
+account: jckober5
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10063759
+bundleId: 7754988
+url: https://jckober5.shinyapps.io/ProvoMealTool/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: github-mark-white.png|index.html|index.Rmd|Provo Meal Tool Survey.twbx|README.md|www/QRCode.png|www/tableau_bkgrd.svg|www/Title.png|images|index_files
