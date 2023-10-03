@@ -10,10 +10,10 @@ options(scipen=999)
 ### Bring in the Data Successfully
 mysqlconnection <- dbConnect(RMySQL::MySQL(),
                              dbname='forms',
-                             host='23.239.4.168',
+                             host='xxxxxx',
                              port=3306,
                              user='jkober',
-                             password='4N4CrFHevPzpdt!')
+                             password='xxxxxx')
 
 df <- dbReadTable(mysqlconnection, 'provo_food')
 provoRest <- read.csv(file.choose(),header = TRUE)
