@@ -14,10 +14,10 @@ library(readr)
 # Function to establish database connection
 dbcon <- function() {
     con <- DBI::dbConnect(RMySQL::MySQL(),
-                          host = "23.239.4.168",
+                          host = ".............",
                           port = 3306,
                           user = "jkober",
-                          password = "4N4CrFHevPzpdt!"
+                          password = "..........."
     )
     return(con)
 }
